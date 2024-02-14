@@ -1,0 +1,18 @@
+﻿.wheel-container {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: center;
+    margin: auto;
+    overflow: hidden;
+}
+
+::deep * {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+::deep .spinner {
+    z-index: 5
+}

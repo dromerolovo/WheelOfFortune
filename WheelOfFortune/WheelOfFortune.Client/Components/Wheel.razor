@@ -1,0 +1,28 @@
+﻿@inject WheelService _wheelService
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: true))
+
+<div class="wheel-container">
+    <WheelBuilder @ref="_wheelBuilder" Width="Width" Height="Height" Sections="WheelSections"></WheelBuilder>
+    <Spinner Width="50" Height="50" OnClickCallback="OnClickSpinner"></Spinner>
+</div>
+
+@code {
+    [Parameter]
+    public double Width { get; set; } = 400;
+    [Parameter]
+    public double Height { get; set; } = 400;
+    [Parameter]
+    public WheelSection[] WheelSections { get; set; } = null!;
+
+    private WheelBuilder _wheelBuilder { get; set; } = null!;
+
+    protected override void OnParametersSet()
+    {
+        _wheelService.WheelSections = WheelSections;
+    }
+
+    private async Task OnClickSpinner()
+    {
+        await _wheelBuilder.TriggerSpin();
+    }
+}

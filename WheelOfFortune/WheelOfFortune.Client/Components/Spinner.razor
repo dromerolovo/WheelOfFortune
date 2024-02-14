@@ -1,0 +1,51 @@
+﻿@using System.Drawing;
+
+<div class="spinner-container" @onmouseover="SetHovered" @onmouseout="CancelHovered" @onclick="OnClickCallback">
+    <div class="@_spinnerClasses" style="@_spinnerStyle"></div>
+    <div class="spinner-content">SPIN</div>
+</div>
+
+@code {
+    [Parameter]
+    public int Width { get; set; }
+    [Parameter]
+    public int Height { get; set; }
+    [Parameter]
+    public string? HexColor { get; set; } = "#ffa500";
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
+
+    protected override void OnInitialized()
+    {
+        SetGradientColors();
+    }
+
+    private bool _hovered = false;
+
+    private void SetHovered() => _hovered = true;
+
+    private void CancelHovered() => _hovered = false;
+
+    private void OnClick() => Console.WriteLine("Blazor is the best so far");
+
+    private (string, string) _gradientColors { get; set; }
+
+    private string _spinnerClasses => new CssBuilder()
+                                        .AddClass("spinner")
+                                        .Build();
+
+    private string _spinnerStyle => new StyleBuilder()
+                                        .AddStyle("width", $"{Width.ToString()}px")
+                                        .AddStyle("height", $"{Height.ToString()}px")
+                                        .AddStyle("background",$"linear-gradient(to right, {_gradientColors.Item1}, {_gradientColors.Item2})")
+                                        .AddStyle("box-shadow", "0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);", !_hovered)
+                                        .AddStyle("box-shadow", "0 10px 20px rgba(0,0,0,0.19), 0 6px 6px rgba(0,0,0,0.23);", _hovered)
+                                        .Build();
+    private void SetGradientColors()
+    {
+        var color = ColorTranslator.FromHtml(HexColor);
+        var lighterColor = Color.FromArgb(color.A, Colors.ColorClamp(color.R, 10), Colors.ColorClamp(color.G, 10), Colors.ColorClamp(color.B, 10));
+        var darkerColor = Color.FromArgb(color.A, Colors.ColorClamp(color.R, -10), Colors.ColorClamp(color.G, -10), Colors.ColorClamp(color.B, -10));
+        _gradientColors = (ColorTranslator.ToHtml(lighterColor), ColorTranslator.ToHtml(darkerColor));
+    }
+}

@@ -1,0 +1,124 @@
+﻿@inject Microsoft.JSInterop.IJSRuntime js;
+@inject WheelService _wheelService;
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: true))
+
+<canvas @ref="_canvas" width="@($"{Width}px")" height="@($"{Height}px")" class="canvas" style="@_wheelStyle"></canvas>
+@foreach(var section in Sections.Select((value, i) => new { i, value }))
+{
+    <img id=@($"Image{section.i}") style=@_imageStyle src=@($"{section.value.ImageToRender.Path}")/>
+}
+
+@code {
+    [Parameter]
+    public double Width { get; set; }
+    [Parameter]
+    public double Height { get; set; }
+    [Parameter]
+    public WheelSection[] Sections { get; set; } = null!;
+
+    private bool _spinTriggered = false;
+
+    private ElementReference _canvas;
+    private bool _initialized = false;
+    private double _deg = 0;
+    private bool _displayImages { get; set; } = false;
+
+
+    protected override void OnInitialized()
+    {
+        _deg = WheelOperations.AdjustWheelRotation(Sections.Length);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(firstRender)
+        {
+            await UpdateCanvasAsync();
+            _initialized = true;
+        }
+    }
+
+    public async Task TriggerSpin()
+    {
+        var computeRotation = await _wheelService.ComputeRotation();
+        _deg += computeRotation;
+        Console.WriteLine(_deg);
+#pragma warning disable 4014
+        _wheelService.OnWheelSelection(_deg);
+        StateHasChanged();
+    }
+
+    private async Task UpdateCanvasAsync()
+    {
+        var segments = Sections.Length;
+        await using (var ctx = await js.GetContext2DAsync(_canvas))
+        {
+            var previousAngleInRad = 0.0;
+            var c = Trig.GetCircumsference(Width / 2);
+            var arcLength = c / segments;
+            var arcAngleRad = Trig.GetAngleFromArcLength(arcLength, c);
+            _wheelService.SetUp(Trig.RadiansToDegrees(arcAngleRad), segments);
+
+            for (var i = 0; i < segments; i++)
+            {
+                await js.InvokeVoidAsync("eval", $"Image{i} = document.getElementById('Image{i}')");
+                var xCenter = Width / 2;
+                var yCenter = Height / 2;
+                await ctx.JS.save();
+                await ctx.JS.beginPath();
+                await ctx.JS.arc(xCenter, yCenter, Width / 2, previousAngleInRad, previousAngleInRad + arcAngleRad, false);
+                await ctx.JS.lineTo(xCenter, yCenter);
+                await ctx.JS.clip(FillRule.NonZero);
+                await ctx.JS.closePath();
+                if(Sections[i].ImageToRender.SourceMap)
+                {
+                    await ctx.DrawImageAsync
+                    (
+                        image: $"Image{i}",
+                        sx: Sections[i].ImageToRender.SX,
+                        sy: Sections[i].ImageToRender.SY,
+                        swidth: Sections[i].ImageToRender.SWidth,
+                        sheight: Sections[i].ImageToRender.SHeight,
+                        dx: Sections[i].ImageToRender.DX,
+                        dy: Sections[i].ImageToRender.DY,
+                        dwidth: Sections[i].ImageToRender.DWidth,
+                        dheight: Sections[i].ImageToRender.DHeight
+                    );
+                }
+                else
+                {
+
+                await ctx.JS.save();
+                await ctx.JS.translate(xCenter, yCenter);
+                await ctx.JS.rotate(Trig.DegreesToRadians(WheelOperations.CalculateSectionImgRotation(segments, i+1, _deg)));
+                await ctx.JS.translate(-xCenter, -yCenter);
+
+
+                await ctx.DrawImageAsync
+                (
+                    image: $"Image{i}", 
+                    dx: Sections[i].ImageToRender.DX, 
+                    dy: Sections[i].ImageToRender.DY,
+                    dwidth: Sections[i].ImageToRender.DWidth,
+                    dheight: Sections[i].ImageToRender.DHeight
+                );
+
+                await ctx.JS.restore();
+                }
+                await ctx.JS.lineWidth(5);
+                await ctx.JS.stroke();
+                await ctx.JS.restore();
+
+                previousAngleInRad += arcAngleRad;
+            }
+        }
+    }
+    private string _imageStyle => new StyleBuilder()
+                                        .AddStyle("display", "none", !_displayImages)
+                                        .Build();
+
+    private string _wheelStyle => new StyleBuilder()
+                                        .AddStyle("transform", $"rotate({_deg}deg)")
+                                        .AddStyle("transition", "transform 5s ease-in-out", _initialized)
+                                        .Build();
+}

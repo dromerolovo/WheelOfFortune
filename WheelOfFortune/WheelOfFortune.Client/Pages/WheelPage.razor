@@ -1,0 +1,178 @@
+﻿@page "/wheel"
+@inject WheelService _wheelService
+@rendermode @(new InteractiveWebAssemblyRenderMode(prerender: true))
+
+<PageTitle>Wheel Of Fortune</PageTitle>
+
+<h3>Wheel of Fortune</h3>
+
+<h4>Section selected:</h4>
+<p>@(_wheelSelected?.Name ?? "Unselected")</p>
+
+<div class="canvas-container">
+    <Wheel WheelSections="_sectionsToRender" Width="500" Height="500"></Wheel>
+</div>
+
+
+@code {
+    protected override void OnInitialized()
+    {
+        _wheelService.WheelSelectionEvent += OnEvent;
+    }
+
+    private void OnEvent(object? sender, WheelSelectionArgs e)
+    {
+        _wheelSelected = e.WheelSectionSelected;
+        StateHasChanged();
+    }
+
+    private WheelSection _wheelSelected { get; set; } = null!;
+
+    private WheelSection[] _sectionsToRender = new WheelSection[]
+    {
+        new WheelSection
+        {
+            Name = "Wheel Section 1$",
+            ImageToRender = ImageToRender.Create
+            (
+                path: "1.png",
+                dx: 0,
+                dy: 0,
+                dWidth: 500,
+                dHeight: 500
+            )
+        },
+        new WheelSection
+        {
+            Name = "Wheel Section 2$",
+            ImageToRender = ImageToRender.Create
+            (
+                path: "2.png",
+                dx: 0,
+                dy: 0,
+                dWidth: 500,
+                dHeight: 500
+            )
+        },
+        new WheelSection
+        {
+            Name = "Wheel Section 5$",
+            ImageToRender = ImageToRender.Create
+            (
+                path: "5.png",
+                dx: 0,
+                dy: 0,
+                dWidth: 500,
+                dHeight: 500
+            )
+        },
+        new WheelSection
+        {
+            Name = "Wheel Section 10$",
+            ImageToRender = ImageToRender.Create
+            (
+                path: "10.png",
+                dx: 0,
+                dy: 0,
+                dWidth: 500,
+                dHeight: 500
+            )
+        },
+        new WheelSection
+        {
+            Name = "Wheel Section 25$",
+            ImageToRender = ImageToRender.Create
+            (
+                path: "25.png",
+                dx: 0,
+                dy: 0,
+                dWidth: 500,
+                dHeight: 500
+            )
+        },
+        new WheelSection
+        {
+            Name = "Wheel Section 50$",
+            ImageToRender = ImageToRender.Create
+            (
+                path: "50.png",
+                dx: 0,
+                dy: 0,
+                dWidth: 500,
+                dHeight: 500
+            )
+        },
+                new WheelSection
+        {
+            Name = "Wheel Section 100$",
+            ImageToRender = ImageToRender.Create
+            (
+                path: "100.png",
+                dx: 0,
+                dy: 0,
+                dWidth: 500,
+                dHeight: 500
+            )
+        },
+        //  new WheelSection
+        // {
+        //     Name = "Wheel Section 8",
+        //     ImageToRender = ImageToRender.Create
+        //     (
+        //         path: "50.png",
+        //         dx: 0,
+        //         dy: 0,
+        //         dWidth: 500,
+        //         dHeight: 500
+        //     )
+        // },
+        // new WheelSection
+        // {
+        //     Name = "Wheel Section 9",
+        //     ImageToRender = ImageToRender.Create
+        //     (
+        //         path: "50.png",
+        //         dx: 0,
+        //         dy: 0,
+        //         dWidth: 500,
+        //         dHeight: 500
+        //     )
+        // },
+        // new WheelSection
+        // {
+        //     Name = "Wheel Section 10",
+        //     ImageToRender = ImageToRender.Create
+        //     (
+        //         path: "50.png",
+        //         dx: 0,
+        //         dy: 0,
+        //         dWidth: 500,
+        //         dHeight: 500
+        //     )
+        // },
+        // new WheelSection
+        // {
+        //     Name = "Wheel Section 11",
+        //     ImageToRender = ImageToRender.Create
+        //     (
+        //         path: "50.png",
+        //         dx: 0,
+        //         dy: 0,
+        //         dWidth: 500,
+        //         dHeight: 500
+        //     )
+        // },
+        // new WheelSection
+        // {
+        //     Name = "Wheel Section 12",
+        //     ImageToRender = ImageToRender.Create
+        //     (
+        //         path: "50.png",
+        //         dx: 0,
+        //         dy: 0,
+        //         dWidth: 500,
+        //         dHeight: 500
+        //     )
+        // },
+    };
+}
